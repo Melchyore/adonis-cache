@@ -1,0 +1,53 @@
+import { cacheConfig } from '@melchyore/adonis-cache/build/config'
+
+export default cacheConfig({
+  prefix: 'cache_',
+
+  store: '{{ store }}',
+
+  stores: {
+{{#stores.database}}
+{{> database_store}}
+{{/stores.database}}
+{{#stores.redis}}
+{{> redis_store}}
+{{/stores.redis}}
+{{#stores.memcached}}
+{{> memcached_store}}
+{{/stores.memcached}}
+{{#stores.in_memory}}
+{{> in_memory_store}}
+{{/stores.in_memory}}
+{{#stores.dynamodb}}
+{{> dynamodb_store}}
+{{/stores.dynamodb}}
+{{#stores.file}}
+{{> file_store}}
+{{/stores.file}}
+  },
+
+  /*
+  |--------------------------------------------------------------------------
+  | Time to live (TTL)
+  |--------------------------------------------------------------------------
+  |
+  | TTL is expressed in seconds.
+  | 
+  */
+  ttl: 60,
+
+  /*
+  |--------------------------------------------------------------------------
+  | Cache events
+  |--------------------------------------------------------------------------
+  |
+  | Enable/disable cache events.
+  | 
+  */
+  events: {
+    'cache:hit': true,
+    'cache:missed': true,
+    'cache:key_written': true,
+    'cache:key_forgotten': true
+  }
+})

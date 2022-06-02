@@ -1,0 +1,52 @@
+version: '3.4'
+services:
+
+  tests:
+    image: adonis-cache
+    network_mode: host
+    build:
+      context: .
+    environment:
+      REDIS_HOST: 0.0.0.0
+      REDIS_PORT: 7007
+      REDIS_CLUSTER_PORTS: '7000,7001,7002'
+      WAIT_HOSTS: 0.0.0.0:3305, 0.0.0.0:7000, 0.0.0.0:7001, 0.0.0.0:7002, 0.0.0.0:7003, 0.0.0.0:7004, 0.0.0.0:7005, 0.0.0.0:7006, 0.0.0.0:7007
+      MEMCACHED_SERVER_URL: localhost:11211
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      DB_CONNECTION: ${DB_CONNECTION}
+      MYSQL_DB_NAME: ${MYSQL_DB_NAME}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_PORT: ${MYSQL_PORT}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - redis
+      - memcached
+      - mysql
+    command: sh -c "/wait && nyc --reporter=text npm run test:docker"
+
+  redis:
+    network_mode: host
+    image: grokzen/redis-cluster
+    environment:
+      REDIS_CLUSTER_IP: 0.0.0.0
+      IP: 0.0.0.0
+      STANDALONE: 'true'
+
+  memcached:
+    image: 'memcached:alpine'
+    ports:
+      - "11211:11211"
+
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password --sync_binlog=0 --innodb_doublewrite=OFF  --innodb-flush-log-at-trx-commit=0 --innodb-flush-method=nosync
+    environment:
+      MYSQL_DATABASE: lucid
+      MYSQL_USER: test
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password
+    ports:
+      - '3305:3306'

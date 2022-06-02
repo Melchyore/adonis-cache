@@ -1,0 +1,29 @@
+    /*
+    |--------------------------------------------------------------------------
+    | File store
+    |--------------------------------------------------------------------------
+    |
+    | Use this store to store cache in files.
+    | The 'disk' value must point to an existing
+    | disk inside config/drive.ts, e.g:
+    | {
+    |   {{ disk }}: {
+    |     driver: 'local',
+    |     visibility: 'private',
+    |     root: Application.tmpPath('the-path-you-want-to-use'),
+    |   },
+    | }
+    |
+    | Don't forget to inform Typescript about the new disk:
+    | Open the pre-existing contracts/drive.ts file and
+    | update the `DisksList` interface with the following code:
+    | {{ disk }}: {
+    |   config: LocalDriverConfig
+    |   implementation: LocalDriverContract
+    | }
+    |
+    */
+    file: {
+      driver: 'file',
+      disk: '{{ disk }}'
+    },

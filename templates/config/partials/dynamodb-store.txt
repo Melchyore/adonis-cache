@@ -1,0 +1,12 @@
+    /*
+    |--------------------------------------------------------------------------
+    | DynamoDB store
+    |--------------------------------------------------------------------------
+    |
+    | Use this store to store cache in DynamoDB.
+    |
+    */
+    dynamodb: {
+      driver: 'dynamodb',
+      table: '{{ cacheTableName }}'
+    },

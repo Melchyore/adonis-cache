@@ -1,0 +1,16 @@
+    /*
+    |--------------------------------------------------------------------------
+    | Redis store
+    |--------------------------------------------------------------------------
+    |
+    | Use this store to store cache in redis. By default,
+    | it will use the default redis connection from the
+    | environment variables.
+    | You can specify another connection by adding the `connection`
+    | property to the `redis` object as follows:
+    | connection: 'my-other-connection-name',
+    |
+    */
+    redis: {
+      driver: 'redis'
+    },

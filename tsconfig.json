@@ -1,0 +1,25 @@
+{
+	"compilerOptions": {
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true,
+    "types": [
+      "@adonisjs/core",
+      "@adonisjs/redis",
+      "@adonisjs/lucid",
+      "@types/node"
+    ]
+  },
+	"extends": "./node_modules/@adonisjs/mrm-preset/_tsconfig",
+	"files": [
+		/*"./node_modules/@adonisjs/core/build/adonis-typings/index.d.ts",
+		"./node_modules/@adonisjs/redis/build/adonis-typings/index.d.ts",
+		"./node_modules/@adonisjs/events/build/adonis-typings/events.d.ts",*/
+		"./adonis-typings/index.ts",
+    "./node_modules/@adonisjs/lucid/build/adonis-typings/index.d.ts",
+    "./node_modules/@adonisjs/repl/build/adonis-typings/index.d.ts",
+    "./node_modules/@adonisjs/view/build/adonis-typings/index.d.ts",
+    "./node_modules/adonis5-memcached-client/build/adonis-typings/index.d.ts",
+    "./node_modules/adonis-dynamodb/build/adonis-typings/index.d.ts"
+	]
+}

@@ -1,0 +1,131 @@
+{
+  "name": "@melchyore/adonis-cache",
+  "version": "1.0.0",
+  "description": "Cache package for AdonisJS V5",
+  "author": "Oussama Benhamed",
+  "license": "MIT",
+  "homepage": "https://github.com/Melchyore/adonis-cache#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Melchyore/adonis-cache.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Melchyore/adonis-cache/issues"
+  },
+  "engines": {
+    "npm": ">=6.0.0",
+    "node": ">=16.14.0"
+  },
+  "main": "./build/providers/CacheProvider.js",
+  "types": "./build/adonis-typings/index.d.ts",
+  "scripts": {
+    "build": "npm run compile",
+    "coverage": "nyc npm run test",
+    "compile": "npm run lint && npm run clean && tsc && npm run copyfiles",
+    "copyfiles": "copyfiles \"templates/**/*.txt\" \"instructions.md\" build",
+    "test": "docker-compose build && docker-compose run --rm tests",
+    "clean": "del-cli build",
+    "test:docker": "FORCE_COLOR=true node -r @adonisjs/require-ts/build/register ./bin/test/index.ts",
+    "lint": "eslint . --ext=.ts",
+    "format": "prettier --write .",
+    "mrm": "mrm --preset=@adonisjs/mrm-preset",
+    "release": "np --message=\"chore(release): %s\"",
+    "version": "npm run build",
+    "commit": "git-cz"
+  },
+  "devDependencies": {
+    "@adonisjs/assembler": "^5.7.0",
+    "@adonisjs/core": "^5.8.2",
+    "@adonisjs/mrm-preset": "^5.0.3",
+    "@adonisjs/repl": "^3.1.11",
+    "@adonisjs/view": "^6.1.5",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@japa/assert": "^1.3.4",
+    "@japa/expect": "^1.1.4",
+    "@japa/run-failed-tests": "^1.0.7",
+    "@japa/runner": "^2.0.8",
+    "@japa/spec-reporter": "^1.1.12",
+    "@poppinss/dev-utils": "^2.0.3",
+    "adonis-preset-ts": "^2.1.0",
+    "commitizen": "^4.2.4",
+    "copyfiles": "^2.4.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "del-cli": "^4.0.1",
+    "eslint": "^8.10.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-adonis": "^2.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "husky": "^8.0.1",
+    "mrm": "^4.0.0",
+    "mysql": "^2.18.1",
+    "np": "^7.6.1",
+    "pino-pretty": "^7.5.3",
+    "prettier": "^2.5.1",
+    "tslint": "^6.1.3",
+    "typescript": "~4.5",
+    "youch": "^3.1.1",
+    "youch-terminal": "^2.1.3"
+  },
+  "dependencies": {
+    "@adonisjs/lucid": "^18.0.0",
+    "@adonisjs/redis": "^7.3.0",
+    "@poppinss/manager": "^5.0.2",
+    "@poppinss/utils": "^4.0.4",
+    "adonis-dynamodb": "^1.2.3",
+    "adonis5-memcached-client": "^1.1.0"
+  },
+  "files": [
+    "build/adonis-typings",
+    "build/providers",
+    "build/templates",
+    "build/commands",
+    "build/src",
+    "build/instructions.js",
+    "build/instructions.md",
+    "build/config.js",
+    "build/config.d.ts"
+  ],
+  "adonisjs": {
+    "instructions": "./build/instructions.js",
+    "instructionsMd": "./build/instructions.md",
+    "types": "@melchyore/adonis-cache",
+    "providers": [
+      "@melchyore/adonis-cache"
+    ],
+    "commands": [
+      "@melchyore/adonis-cache/build/commands"
+    ]
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "semi": false,
+    "singleQuote": true,
+    "useTabs": false,
+    "quoteProps": "consistent",
+    "bracketSpacing": true,
+    "arrowParens": "always",
+    "printWidth": 100
+  },
+  "mrmConfig": {
+    "core": false,
+    "license": "MIT",
+    "services": [
+      "github-actions"
+    ],
+    "minNodeVersion": "16.13.1",
+    "probotApps": [
+      "stale",
+      "lock"
+    ],
+    "runGhActionsOnWindows": false
+  },
+  "np": {
+    "contents": ".",
+    "anyBranch": false
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  }
+}

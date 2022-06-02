@@ -1,0 +1,17 @@
+    /*
+    |--------------------------------------------------------------------------
+    | Database store
+    |--------------------------------------------------------------------------
+    |
+    | Use this store to store cache in the database. By default,
+    | it will use the default database connection from the
+    | environment variables.
+    | You can specify another connection by adding the `connection`
+    | property to the `database` object as follows:
+    | connection: 'my-other-connection-name',
+    |
+    */
+    database: {
+      driver: 'database',
+      table: '{{ cacheTableName }}'
+    },
