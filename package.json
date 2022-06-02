@@ -74,6 +74,10 @@
     "adonis-dynamodb": "^1.2.3",
     "adonis5-memcached-client": "^1.1.0"
   },
+  "publishConfig": {
+    "tag": "latest",
+    "access": "public"
+  },
   "files": [
     "build/adonis-typings",
     "build/providers",
