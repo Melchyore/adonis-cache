@@ -331,11 +331,7 @@ export async function getCache(store: keyof CacheStoresList, config: CacheConfig
   const app = await setup('test', config)
 
   if (store === 'database') {
-    await setupTable(
-      app,
-      app.container.use('Adonis/Core/Env').get('DB_CONNECTION'),
-      config.stores.database.table
-    )
+    await setupTable(app, config.stores.database.connection!, config.stores.database.table)
   } else if (store === 'dynamodb') {
     await setupDynamoDBTable(app)
   }
