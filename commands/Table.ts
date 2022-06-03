@@ -19,7 +19,7 @@ export default class Make extends BaseCommand {
 
   public async run() {
     const stub = join(__dirname, '..', 'templates', 'migration.txt')
-    const cacheTableName = this.cacheTableName
+    const cacheTableName = this.cacheTableName ?? 'cache'
 
     this.generator
       .addFile(`${Date.now()}_${cacheTableName}.ts`)

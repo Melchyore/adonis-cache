@@ -17,7 +17,7 @@ export default class DynamoDB extends BaseCommand {
   public tableName: string = 'Cache'
 
   public async run() {
-    await this.createTable(this.tableName)
+    await this.createTable(this.tableName ?? 'Cache')
     await this.exit()
   }
 
