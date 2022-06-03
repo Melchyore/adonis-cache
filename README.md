@@ -43,9 +43,9 @@
   * [Using the driver](#using-the-driver)
 - [Run tests](#run-tests)
 - [Author](#author)
-- [Contributing](#---contributing)
+- [Contributing](#contributing)
 - [Show your support](#show-your-support)
-- [License](#---license)
+- [License](#license)
 
 
 # Adonis Cache
@@ -667,7 +667,7 @@ The Cache exposes the API to add your custom drivers. Every driver must adhere t
 export interface CacheStoreContract {
     get<T = any>(key: string): Promise<T | null>
 
-    many<T = any>(keys: Array<string>): Promise<Record<string, T | null>>
+    many<T extends Record<string, any>>(keys: Array<string>): Promise<T>
 
     put<T = any>(key: string, value: T, ttl: number): Promise<boolean>
 
@@ -861,7 +861,7 @@ npm test
 * Twitter: [@Melchyore](https://twitter.com/Melchyore)
 * Github: [@Melchyore](https://github.com/Melchyore)
 
-# 🤝 Contributing
+# Contributing
 
 Contributions, issues and feature requests are welcome!<br />Feel free to check [issues page](https://github.com/Melchyore/adonis-cache/issues). 
 
@@ -881,7 +881,7 @@ Give a ⭐️ if this project helped you!
   <img src="https://assets.stickpng.com/images/580b57fcd9996e24bc43c530.png" width="160" >
 </a>
 
-# 📝 License
+# License
 
 Copyright © 2022 [Oussama Benhamed](https://github.com/Melchyore).<br />
 This project is [MIT](https://github.com/Melchyore/adonis-cache/blob/master/LICENSE.md) licensed.
