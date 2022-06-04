@@ -4,6 +4,7 @@
   "description": "Cache package for AdonisJS V5",
   "author": "Oussama Benhamed",
   "license": "MIT",
+  "keywords": ["adonis", "adonisjs", "javascript", "typescript", "js", "ts", "cache", "database", "redis", "memcached", "lucid", "sql", "dynamodb", "aws", "amazon", "sdk", "package", "module", "file", "system", "store"],
   "homepage": "https://github.com/Melchyore/adonis-cache#readme",
   "repository": {
     "type": "git",
