@@ -15,6 +15,7 @@
   * [File](#file)
   * [Memcached](#memcached)
   * [Redis](#redis)
+  * [InMemory](#inmemory)
 - [Usage](#usage)
   * [Store items](#store-items)
     + [One item](#one-item)
@@ -50,7 +51,7 @@
 
 # Adonis Cache
 
-[![gh-workflow-image]][gh-workflow-url] [![coverage-image]][coverage-url] [![npm-image]][npm-url] [![license-image]][license-url] [![typescript-image]][typescript-url]
+[![npm-image]][npm-url] [![license-image]][license-url] [![typescript-image]][typescript-url]
 
 Cache package for AdonisJS V5
 
@@ -665,34 +666,34 @@ The Cache exposes the API to add your custom drivers. Every driver must adhere t
 
 ```ts
 export interface CacheStoreContract {
-    get<T = any>(key: string): Promise<T | null>
+  get<T = any>(key: string): Promise<T | null>
 
-    many<T extends Record<string, any>>(keys: Array<string>): Promise<T>
+  many<T extends Record<string, any>>(keys: Array<string>): Promise<T>
 
-    put<T = any>(key: string, value: T, ttl: number): Promise<boolean>
+  put<T = any>(key: string, value: T, ttl: number): Promise<boolean>
 
-    increment(key: string, value: number): Promise<number | boolean>
+  increment(key: string, value: number): Promise<number | boolean>
 
-    decrement(key: string, value: number): Promise<number | boolean>
+  decrement(key: string, value: number): Promise<number | boolean>
 
-    putMany(list: Record<string, unknown>, ttl: number): Promise<Array<boolean>>
+  putMany(list: Record<string, unknown>, ttl: number): Promise<Array<boolean>>
 
-    putManyForever(list: Record<string, unknown>): Promise<Array<boolean>>
+  putManyForever(list: Record<string, unknown>): Promise<Array<boolean>>
 
-    has(key: string): Promise<boolean>
+  has(key: string): Promise<boolean>
 
-    forever<T = any>(key: string, value: T): Promise<boolean>
+  forever<T = any>(key: string, value: T): Promise<boolean>
 
-    forget(key: string): Promise<boolean>
+  forget(key: string): Promise<boolean>
 
-    flush(): Promise<boolean>
+  flush(): Promise<boolean>
 
-    calculateTTL(ttlInMilliseconds: number): number
+  calculateTTL(ttlInMilliseconds: number): number
 
-    add?<T = any>(key: string, value: T, ttl?: number): Promise<boolean>
+  add?<T = any>(key: string, value: T, ttl?: number): Promise<boolean>
 
-    tags?(names: string | Array<string>): TaggedCacheContract
-  }
+  tags?(names: string | Array<string>): TaggedCacheContract
+}
 ```
 
 #### get
