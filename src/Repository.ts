@@ -102,7 +102,7 @@ export default class Repository implements RepositoryContract {
   }
 
   public async has(key: string): Promise<boolean> {
-    return await this._store.has(await this.itemKey(key))
+    return (await this._store.has(await this.itemKey(key))) === true
   }
 
   public async missing(key: string): Promise<boolean> {
