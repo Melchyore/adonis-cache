@@ -51,7 +51,7 @@
 
 # Adonis Cache
 
-[![npm-image]][npm-url] [![license-image]][license-url] [![typescript-image]][typescript-url]
+[![gh-workflow-image]][gh-workflow-url] [![npm-image]][npm-url] [![license-image]][license-url] [![typescript-image]][typescript-url]
 
 Cache package for AdonisJS V5
 
@@ -887,7 +887,7 @@ Give a ⭐️ if this project helped you!
 Copyright © 2022 [Oussama Benhamed](https://github.com/Melchyore).<br />
 This project is [MIT](https://github.com/Melchyore/adonis-cache/blob/master/LICENSE.md) licensed.
 
-[gh-workflow-image]: https://img.shields.io/github/workflow/status/Melchyore/adonis-cache/test?style=for-the-badge
+[gh-workflow-image]: https://img.shields.io/github/actions/workflow/status/Melchyore/adonis-cache/test.yml?style=for-the-badge
 [gh-workflow-url]: https://github.com/Melchyore/adonis-cache/actions/workflows/test.yml "Github action"
 
 [coverage-image]: https://img.shields.io/coveralls/github/Melchyore/adonis-cache/master?style=for-the-badge
