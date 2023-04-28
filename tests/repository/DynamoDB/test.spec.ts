@@ -484,6 +484,20 @@ test.group('Repository - DynamoDB', (group) => {
     await repository.forget(key)
   }).disableTimeout()
 
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const repository = await getRepository()
+
+    const key = 'test'
+
+    await repository.rememberForever(key, async () => 0)
+
+    const cachedValue = await repository.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
+
+    await repository.forget(key)
+  }).disableTimeout()
+
   test('remember method should cache fallback value and return it if key not found', async ({
     expect
   }) => {

@@ -45,7 +45,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.get(key)).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('set method', async ({ expect }) => {
@@ -58,7 +58,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.get(key)).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('put method', async ({ expect }) => {
@@ -71,7 +71,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.get(key)).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('put method with custom ttl', async ({ expect }) => {
@@ -88,7 +88,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.has(key)).toBeFalsy()
     expect(await Repository.get(key)).toStrictEqual(null)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   }).disableTimeout()
 
   test('put method should throw exception if ttl is nagative', async ({ expect }) => {
@@ -100,7 +100,7 @@ test.group('Repository - Redis', (group) => {
       'Expiration time (TTL) cannot be negative'
     )
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('putMany method should cache all the values', async ({ expect }) => {
@@ -120,7 +120,7 @@ test.group('Repository - Redis', (group) => {
       expect(await Repository.get(key)).toStrictEqual(value)
     }
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('putMany method should cache all the values with custom ttl', async ({ expect }) => {
@@ -139,7 +139,7 @@ test.group('Repository - Redis', (group) => {
       expect(await Repository.get(key)).toStrictEqual(value)
     }
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   }).disableTimeout()
 
   test('putManyForever method should cache all the values without ttl', async ({ expect }) => {
@@ -158,7 +158,7 @@ test.group('Repository - Redis', (group) => {
       expect(await Repository.get(key)).toStrictEqual(value)
     }
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   }).disableTimeout()
 
   test('get method should find cached value by key', async ({ expect }) => {
@@ -171,7 +171,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.get(key)).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('get method should delete cached value if it is called and has expired', async ({
@@ -190,7 +190,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.has(key)).toBeFalsy()
     expect(value).toBeNull()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   }).disableTimeout()
 
   test('get method should return value if key not found and fallback defined as a raw value', async ({
@@ -204,7 +204,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.get('test', value)).toStrictEqual(value)
     expect(await Repository.has(key)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('get method should return value if key not found and fallback defined as a closure', async ({
@@ -229,7 +229,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(value).toStrictEqual(data)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('get method should not cache value if key not found and fallback defined', async ({
@@ -243,7 +243,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.has(key)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('get method should return cached value using forever method', async ({ expect }) => {
@@ -256,7 +256,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.get(key)).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('has method should return true if key is found', async ({ expect }) => {
@@ -268,7 +268,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.has(key)).toBeTruthy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('has method should return false if key is not found', async ({ expect }) => {
@@ -276,7 +276,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.has('test')).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('missing method should return true if key is not found', async ({ expect }) => {
@@ -294,7 +294,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.missing(key)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('increment method should increment the value of an existing record and return the new value', async ({
@@ -310,7 +310,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.increment(key, 2)).toStrictEqual(7)
     expect(await Repository.get(key)).toStrictEqual(7)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('increment method should not change value if it is not a number and return false', async ({
@@ -326,7 +326,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.increment(key, 2)).toBeFalsy()
     expect(await Repository.get(key)).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('increment method should return false if key not found', async ({ expect }) => {
@@ -334,7 +334,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.increment('test', 1)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('decrement method should decrement the value of an existing record and return the new value', async ({
@@ -350,7 +350,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.decrement(key, 2)).toStrictEqual(3)
     expect(await Repository.get(key)).toStrictEqual(3)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('decrement method should not change value if it is not a number and return false', async ({
@@ -366,7 +366,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.decrement(key, 2)).toBeFalsy()
     expect(await Repository.get(key)).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('decrement method should return false if key not found', async ({ expect }) => {
@@ -374,7 +374,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.decrement('test', 1)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('forever method should cache a value without expiration', async ({ expect }) => {
@@ -388,7 +388,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.has(key)).toBeTruthy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   }).disableTimeout()
 
   test('pull method should retrieve cached item and delete it from cache', async ({ expect }) => {
@@ -404,7 +404,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.has(key)).toBeFalsy()
     expect(pulled).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('forget method should delete cached value using put method', async ({ expect }) => {
@@ -420,7 +420,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.has(key)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('forget method should delete cached value using put method with custom ttl', async ({
@@ -438,7 +438,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.has(key)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('forget method should delete cached value using forever method', async ({ expect }) => {
@@ -454,7 +454,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.has(key)).toBeFalsy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('forgetMultiple method should delete all cached value by keys', async ({ expect }) => {
@@ -493,7 +493,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(cachedValue).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('remember method should cache fallback value and return it if key not found', async ({
@@ -514,7 +514,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.get(key)).toStrictEqual(fallbackValue)
     expect(cachedValue).toStrictEqual(fallbackValue)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('remember method should throw exception if closure is not a function', async ({
@@ -527,7 +527,7 @@ test.group('Repository - Redis', (group) => {
       async () => await Repository.remember('test', null, null)
     ).rejects.toThrowError('Closure must be a function')
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('remember method should throw exception if ttl is negative', async ({ expect }) => {
@@ -537,7 +537,7 @@ test.group('Repository - Redis', (group) => {
       async () => await Repository.remember('test', -200, async () => 'John Doe')
     ).rejects.toThrowError('Expiration time (TTL) cannot be negative')
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('sear method should cache an item forever', async ({ expect }) => {
@@ -551,7 +551,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.has(key)).toBeTruthy()
     expect(cachedValue).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('rememberForever method should return cached value using put method', async ({ expect }) => {
@@ -567,7 +567,20 @@ test.group('Repository - Redis', (group) => {
 
     expect(cachedValue).toStrictEqual(value)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
+  })
+
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const { Repository, RedisManager } = await getRepository()
+
+    const key = 'test'
+
+    await Repository.rememberForever(key, async () => 0)
+    const cachedValue = await Repository.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
+
+    await RedisManager.flushall()
   })
 
   test('rememberForever method should cache fallback value and return it if key not found', async ({
@@ -588,7 +601,7 @@ test.group('Repository - Redis', (group) => {
     expect(await Repository.get(key)).toStrictEqual(fallbackValue)
     expect(cachedValue).toStrictEqual(fallbackValue)
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('rememberForever method should throw exception if closure is not a function', async ({
@@ -601,7 +614,7 @@ test.group('Repository - Redis', (group) => {
       async () => await Repository.rememberForever('test', null)
     ).rejects.toThrowError('Closure must be a function')
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('many method should return an object of key-value if keys are found', async ({ expect }) => {
@@ -622,7 +635,7 @@ test.group('Repository - Redis', (group) => {
       [key2]: value2
     })
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('flush method should delete all records from the current cache store', async ({
@@ -645,7 +658,7 @@ test.group('Repository - Redis', (group) => {
       expect(await Repository.has(key)).toBeFalsy()
     })
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('tags should cache value using put method', async ({ expect }) => {
@@ -657,7 +670,7 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.tags(tags).has(key)).toBeTruthy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   })
 
   test('tags should cache value using forever method', async ({ expect }) => {
@@ -671,6 +684,6 @@ test.group('Repository - Redis', (group) => {
 
     expect(await Repository.tags(tags).has(key)).toBeTruthy()
 
-    RedisManager.flushall()
+    await RedisManager.flushall()
   }).disableTimeout()
 })

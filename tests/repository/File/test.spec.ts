@@ -497,6 +497,18 @@ test.group('Repository - File', (group) => {
     expect(cachedValue).toStrictEqual(value)
   })
 
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const repository = await getRepository()
+
+    const key = 'test'
+
+    await repository.rememberForever(key, async () => 0)
+
+    const cachedValue = await repository.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
+  })
+
   test('rememberForever method should cache fallback value and return it if key not found', async ({
     expect
   }) => {

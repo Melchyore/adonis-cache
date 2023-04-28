@@ -258,7 +258,7 @@ export default class Repository implements RepositoryContract {
     if (this.checkClosure(closure)) {
       let value = await this.get(key)
 
-      if (value) {
+      if (value !== null && value !== undefined) {
         return value
       }
 

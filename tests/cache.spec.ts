@@ -552,6 +552,18 @@ test.group('Cache Manager - Database store', (group) => {
     expect(cachedValue).toStrictEqual(value)
   })
 
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const Cache = await getCache('database', cacheConfig)
+
+    const key = 'test'
+
+    await Cache.rememberForever(key, async () => 0)
+
+    const cachedValue = await Cache.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
+  })
+
   test('rememberForever method should cache fallback value and return it if key not found', async ({
     expect
   }) => {
@@ -1117,6 +1129,18 @@ test.group('Cache Manager - DynamoDB', (group) => {
     expect(cachedValue).toStrictEqual(value)
   }).disableTimeout()
 
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const Cache = await getCache('dynamodb', cacheConfig)
+
+    const key = 'test'
+
+    await Cache.rememberForever(key, async () => 0)
+
+    const cachedValue = await Cache.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
+  }).disableTimeout()
+
   test('rememberForever method should cache fallback value and return it if key not found', async ({
     expect
   }) => {
@@ -1594,6 +1618,18 @@ test.group('Cache Manager - File', (group) => {
     const cachedValue = await Cache.rememberForever(key, async () => fallbackValue)
 
     expect(cachedValue).toStrictEqual(value)
+  })
+
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const Cache = await getCache('file', cacheConfig)
+
+    const key = 'test'
+
+    await Cache.rememberForever(key, async () => 0)
+
+    const cachedValue = await Cache.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
   })
 
   test('rememberForever method should cache fallback value and return it if key not found', async ({
@@ -2234,6 +2270,18 @@ test.group('Cache Manager - InMemory', (group) => {
     expect(cachedValue).toStrictEqual(value)
   })
 
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const Cache = await getCache('in_memory', cacheConfig)
+
+    const key = 'test'
+
+    await Cache.rememberForever(key, async () => 0)
+
+    const cachedValue = await Cache.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
+  })
+
   test('rememberForever method should cache fallback value and return it if key not found', async ({
     expect
   }) => {
@@ -2799,6 +2847,18 @@ test.group('Cache Manager - Memcached', (group) => {
     const cachedValue = await Cache.rememberForever(key, async () => fallbackValue)
 
     expect(cachedValue).toStrictEqual(value)
+  })
+
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const Cache = await getCache('memcached', cacheConfig)
+
+    const key = 'test'
+
+    await Cache.rememberForever(key, async () => 0)
+
+    const cachedValue = await Cache.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
   })
 
   test('rememberForever method should cache fallback value and return it if key not found', async ({
@@ -3386,6 +3446,18 @@ test.group('Cache Manager - Redis', (group) => {
     const cachedValue = await Cache.rememberForever(key, async () => fallbackValue)
 
     expect(cachedValue).toStrictEqual(value)
+  })
+
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const Cache = await getCache('redis', cacheConfig)
+
+    const key = 'test'
+
+    await Cache.rememberForever(key, async () => 0)
+
+    const cachedValue = await Cache.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
   })
 
   test('rememberForever method should cache fallback value and return it if key not found', async ({
