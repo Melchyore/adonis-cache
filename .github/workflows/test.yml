@@ -36,9 +36,6 @@ jobs:
           root-password: ${{ secrets.MYSQL_PASSWORD }}
           password: ${{ secrets.MYSQL_PASSWORD }}
 
-      - name: Run MySQL
-        run: sudo /etc/init.d/mysql start
-
       - name: Create database
         run: mysql -uroot -proot -e 'CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DB_NAME }};'
 
@@ -49,7 +46,7 @@ jobs:
           sharedDb: # undefined by default
           delayTransientStatuses: # undefined by default
           optimizeDbBeforeStartup: # undefined by default
-          port: 8001
+          port: 8000
           cors: '*'
 
       - name: Setup Memcached
