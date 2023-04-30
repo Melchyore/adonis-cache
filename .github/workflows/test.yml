@@ -36,6 +36,9 @@ jobs:
           root-password: ${{ secrets.MYSQL_PASSWORD }}
           password: ${{ secrets.MYSQL_PASSWORD }}
 
+      - name: Run MySQL
+        run: sudo /etc/init.d/mysql start
+
       - name: Create database
         run: mysql -uroot -proot -e 'CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DB_NAME }};'
 
