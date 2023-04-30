@@ -8,9 +8,55 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 16.14.0
+          - 18.14.1
+          - 19.x
+        redis-version: [6]
+
     steps:
+      - uses: KengoTODA/actions-setup-docker-compose@v1
+        if: ${{ env.ACT }}
+        name: Install `docker-compose` for local simulations
+        with:
+          version: '2.14.2'
+
       - uses: actions/checkout@v3
+
+      - name: Setup MySQL
+        uses: shogo82148/actions-setup-mysql@v1.16.0
+        with:
+          auto-start: true
+          mysql-version: '8.0'
+          my-conf: |
+            default-authentication-plugin=mysql_native_password
+            sync_binlog=0
+            innodb_doublewrite=OFF
+            innodb-flush-log-at-trx-commit=0
+            innodb-flush-method=nosync
+          user: ${{ secrets.MYSQL_USER }}
+          root-password: ${{ secrets.MYSQL_PASSWORD }}
+          password: ${{ secrets.MYSQL_PASSWORD }}
+
+      - name: Create database
+        run: mysql -uroot -proot -e 'CREATE DATABASE IF NOT EXISTS ${{ secrets.MYSQL_DB_NAME }};'
+
+      - name: Setup DynamoDB Local
+        uses: rrainn/dynamodb-action@v3.0.0
+        with:
+          dbPath: # undefined by default, if this is undefined inMemory will be used
+          sharedDb: # undefined by default
+          delayTransientStatuses: # undefined by default
+          optimizeDbBeforeStartup: # undefined by default
+          port: 8001
+          cors: '*'
+
+      - name: Setup Memcached
+        uses: niden/actions-memcached@v7
+
+      - name: Setup Redis
+        uses: supercharge/redis-github-action@1.5.0
+        with:
+          redis-version: ${{ matrix.redis-version }}
+          redis-port: ${{ secrets.REDIS_PORT }}
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -21,7 +67,7 @@ jobs:
         run: npm install && npm install -g nyc
 
       - name: Run tests
-        run: nyc --reporter=lcovonly npm test
+        run: FORCE_COLOR=true nyc --reporter=lcovonly node -r @adonisjs/require-ts/build/register ./bin/test/index.ts
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -33,6 +79,9 @@ jobs:
           MYSQL_PORT: ${{ secrets.MYSQL_PORT }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MEMCACHED_SERVER_URL: ${{ secrets.MEMCACHED_SERVER_URL }}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
 
       - name: Coveralls
         uses: coverallsapp/github-action@master
