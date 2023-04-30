@@ -47,7 +47,7 @@ const databaseConfig = {
   connection: process.env.DB_CONNECTION,
   connections: {
     mysql: {
-      client: 'mysql',
+      client: 'mysql2',
       connection: {
         host: process.env.MYSQL_HOST,
         port: process.env.MYSQL_PORT,

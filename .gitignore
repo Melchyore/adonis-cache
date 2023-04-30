@@ -15,3 +15,4 @@ shrinkwrap.yaml
 *.tgz
 *-lock.json
 docker
+.secrets
