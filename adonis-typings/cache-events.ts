@@ -5,12 +5,7 @@ declare module '@ioc:Adonis/Addons/Cache' {
     expiration?: number
   }
 
-  export enum CacheEvents {
-    Hit = 'cache:hit',
-    Missed = 'cache:missed',
-    KeyWritten = 'cache:key_written',
-    KeyForgotten = 'cache:key_forgotten'
-  }
+  export type CacheEvents = import('../src/Enums/CacheEvents').default
 
   export interface CacheEventContract extends CacheEventPayload {
     EVENT: CacheEvents
@@ -24,14 +19,18 @@ declare module '@ioc:Adonis/Addons/Cache' {
 }
 
 declare module '@ioc:Adonis/Core/Event' {
-  import type { CacheEventPayload, CacheClearEventPayload } from '@ioc:Adonis/Addons/Cache'
+  import type {
+    CacheEventPayload,
+    CacheClearEventPayload,
+    CacheEvents
+  } from '@ioc:Adonis/Addons/Cache'
 
-  export interface EventsList {
-    'cache:hit': CacheEventPayload
-    'cache:missed': CacheEventPayload
-    'cache:key_written': CacheEventPayload
-    'cache:key_forgotten': CacheEventPayload
+  type Events = {
+    [E in 'CacheEvents']: CacheEventPayload
+  } & {
     'cache:clearing': CacheClearEventPayload
     'cache:cleared': CacheClearEventPayload
   }
+
+  export interface EventsList extends Events {}
 }

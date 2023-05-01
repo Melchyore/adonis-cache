@@ -1,4 +1,4 @@
-export enum CacheEvents {
+enum CacheEvents {
   Hit = 'cache:hit',
   Missed = 'cache:missed',
   KeyWritten = 'cache:key_written',
