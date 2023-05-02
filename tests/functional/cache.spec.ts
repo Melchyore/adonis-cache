@@ -18,12 +18,21 @@ import TaggableStore from '../../src/Stores/TaggableStore'
 import InMemory from '../../src/Stores/InMemory'
 import Memcached from '../../src/Stores/Memcached'
 import Redis from '../../src/Stores/Redis'
+import Repository from '../../src/Repository'
 
 const cacheConfig = getCacheConfig()
 
 test.group('Cache Manager', (group) => {
   group.each.teardown(async () => {
     await fs.cleanup()
+  })
+
+  test('raise error when config is missing', async ({ expect }) => {
+    const app = await setup('test', {})
+
+    expect(() => app.container.use('Adonis/Addons/Cache')).toThrowError(
+      'Invalid "cache" config. Missing value for "store". Make sure to set it inside the "config/cache" file'
+    )
   })
 
   test('get default store', async ({ expect }) => {
@@ -48,25 +57,6 @@ test.group('Cache Manager', (group) => {
     expect(RedisCache.store).toBeInstanceOf(Redis)
   })
 
-  test('extend by adding a new store should throw exception if config is not provided', async ({
-    expect
-  }) => {
-    const app = await setup('test', {})
-
-    const Cache = new CacheManager(app, cacheConfig)
-
-    const DummyStore = getDummyStore(BaseStore)
-
-    Cache.extend('dummy', () => {
-      // @ts-ignore
-      return Cache.repository(null, new DummyStore())
-    })
-
-    expect(() => Cache.use('dummy')).toThrowError(
-      'You must provide the driver configuration as first argument'
-    )
-  })
-
   test('extend by adding a new store', async ({ expect }) => {
     const app = await setup('test', {})
 
@@ -74,13 +64,15 @@ test.group('Cache Manager', (group) => {
 
     const DummyStore = getDummyStore(BaseStore)
 
-    Cache.extend('dummy', (_, __, config: CacheStoreConfig) => {
-      return Cache.repository(config, new DummyStore())
+    Cache.extend('dummy', (_, __, ___: CacheStoreConfig) => {
+      return new DummyStore()
     })
 
     const Dummy = Cache.use('dummy')
 
+    expect(Dummy).toBeInstanceOf(Repository)
     expect(Dummy.store).toBeInstanceOf(DummyStore)
+    expect(Dummy.driverConfig.driver).toStrictEqual('dummy')
   })
 
   test('extend by adding a new taggable store', async ({ expect }) => {
@@ -90,8 +82,8 @@ test.group('Cache Manager', (group) => {
 
     const DummyStore = getTaggableDummyStore(TaggableStore)
 
-    Cache.extend('dummy', (_, __, config: CacheStoreConfig) => {
-      return Cache.repository(config, new DummyStore())
+    Cache.extend('dummy', (_, __, ___: CacheStoreConfig) => {
+      return new DummyStore()
     })
 
     const Dummy = Cache.use('dummy')
@@ -327,6 +319,20 @@ test.group('Cache Manager - Database store', (group) => {
     expect(await Cache.get(key)).toStrictEqual(7)
   })
 
+  test('increment method should increment the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('database', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.increment(key)).toStrictEqual(6)
+    expect(await Cache.get(key)).toStrictEqual(6)
+  })
+
   test('increment method should not change value if it is not a number and return false', async ({
     expect
   }) => {
@@ -359,6 +365,20 @@ test.group('Cache Manager - Database store', (group) => {
 
     expect(await Cache.decrement(key, 2)).toStrictEqual(3)
     expect(await Cache.get(key)).toStrictEqual(3)
+  })
+
+  test('decrement method should decrement the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('database', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.decrement(key)).toStrictEqual(4)
+    expect(await Cache.get(key)).toStrictEqual(4)
   })
 
   test('decrement method should not change value if it is not a number and return false', async ({
@@ -671,8 +691,6 @@ test.group('Cache Manager - Database store', (group) => {
     await Cache.put(key, 'John Doe')
 
     expect(await Cache.missing(key)).toBeFalsy()
-
-    await Cache.clear()
   })
 })
 
@@ -904,6 +922,20 @@ test.group('Cache Manager - DynamoDB', (group) => {
     expect(await Cache.get(key)).toStrictEqual(7)
   }).disableTimeout()
 
+  test('increment method should increment the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('dynamodb', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.increment(key)).toStrictEqual(6)
+    expect(await Cache.get(key)).toStrictEqual(6)
+  }).disableTimeout()
+
   test('increment method should not change value if it is not a number and return false', async ({
     expect
   }) => {
@@ -936,6 +968,20 @@ test.group('Cache Manager - DynamoDB', (group) => {
 
     expect(await Cache.decrement(key, 2)).toStrictEqual(3)
     expect(await Cache.get(key)).toStrictEqual(3)
+  }).disableTimeout()
+
+  test('decrement method should decrement the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('dynamodb', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.decrement(key)).toStrictEqual(4)
+    expect(await Cache.get(key)).toStrictEqual(4)
   }).disableTimeout()
 
   test('decrement method should not change value if it is not a number and return false', async ({
@@ -1444,6 +1490,20 @@ test.group('Cache Manager - File', (group) => {
     expect(await Cache.get(key)).toStrictEqual(7)
   })
 
+  test('increment method should increment the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('file', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.increment(key)).toStrictEqual(6)
+    expect(await Cache.get(key)).toStrictEqual(6)
+  })
+
   test('increment method should not change value if it is not a number and return false', async ({
     expect
   }) => {
@@ -1476,6 +1536,20 @@ test.group('Cache Manager - File', (group) => {
 
     expect(await Cache.decrement(key, 2)).toStrictEqual(3)
     expect(await Cache.get(key)).toStrictEqual(3)
+  })
+
+  test('decrement method should decrement the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('file', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.decrement(key)).toStrictEqual(4)
+    expect(await Cache.get(key)).toStrictEqual(4)
   })
 
   test('decrement method should not change value if it is not a number and return false', async ({
@@ -1797,8 +1871,6 @@ test.group('Cache Manager - File', (group) => {
     await Cache.put(key, 'John Doe')
 
     expect(await Cache.missing(key)).toBeFalsy()
-
-    await Cache.clear()
   })
 })
 
@@ -2045,6 +2117,20 @@ test.group('Cache Manager - InMemory', (group) => {
     expect(await Cache.get(key)).toStrictEqual(7)
   })
 
+  test('increment method should increment the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('in_memory', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.increment(key)).toStrictEqual(6)
+    expect(await Cache.get(key)).toStrictEqual(6)
+  })
+
   test('increment method should not change value if it is not a number and return false', async ({
     expect
   }) => {
@@ -2077,6 +2163,20 @@ test.group('Cache Manager - InMemory', (group) => {
 
     expect(await Cache.decrement(key, 2)).toStrictEqual(3)
     expect(await Cache.get(key)).toStrictEqual(3)
+  })
+
+  test('decrement method should decrement the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('in_memory', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.decrement(key)).toStrictEqual(4)
+    expect(await Cache.get(key)).toStrictEqual(4)
   })
 
   test('decrement method should not change value if it is not a number and return false', async ({
@@ -2545,8 +2645,6 @@ test.group('Cache Manager - Memcached', (group) => {
     })
 
     expect(value).toStrictEqual(data)
-
-    await Cache.flush()
   })
 
   test('get method should not cache value if key not found and fallback defined', async ({
@@ -2559,8 +2657,6 @@ test.group('Cache Manager - Memcached', (group) => {
     await Cache.get(key, 'John Doe')
 
     expect(await Cache.has(key)).toBeFalsy()
-
-    await Cache.flush()
   })
 
   test('get method should return cached value using forever method', async ({ expect }) => {
@@ -2618,8 +2714,20 @@ test.group('Cache Manager - Memcached', (group) => {
 
     expect(await Cache.increment(key, 2)).toStrictEqual(7)
     expect(await Cache.get(key)).toStrictEqual(7)
+  })
 
-    await Cache.flush()
+  test('increment method should increment the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('memcached', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.increment(key)).toStrictEqual(6)
+    expect(await Cache.get(key)).toStrictEqual(6)
   })
 
   test('increment method should not change value if it is not a number and return false', async ({
@@ -2654,8 +2762,20 @@ test.group('Cache Manager - Memcached', (group) => {
 
     expect(await Cache.decrement(key, 2)).toStrictEqual(3)
     expect(await Cache.get(key)).toStrictEqual(3)
+  })
 
-    await Cache.flush()
+  test('decrement method should decrement the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('memcached', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.decrement(key)).toStrictEqual(4)
+    expect(await Cache.get(key)).toStrictEqual(4)
   })
 
   test('decrement method should not change value if it is not a number and return false', async ({
@@ -3223,6 +3343,20 @@ test.group('Cache Manager - Redis', (group) => {
     expect(await Cache.get(key)).toStrictEqual(7)
   })
 
+  test('increment method should increment the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('redis', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.increment(key)).toStrictEqual(6)
+    expect(await Cache.get(key)).toStrictEqual(6)
+  })
+
   test('increment method should not change value if it is not a number and return false', async ({
     expect
   }) => {
@@ -3255,6 +3389,20 @@ test.group('Cache Manager - Redis', (group) => {
 
     expect(await Cache.decrement(key, 2)).toStrictEqual(3)
     expect(await Cache.get(key)).toStrictEqual(3)
+  })
+
+  test('decrement method should decrement the cached value by 1 if no value specified', async ({
+    expect
+  }) => {
+    const Cache = await getCache('redis', cacheConfig)
+
+    const key = 'test'
+    const value = 5
+
+    await Cache.put(key, value)
+
+    expect(await Cache.decrement(key)).toStrictEqual(4)
+    expect(await Cache.get(key)).toStrictEqual(4)
   })
 
   test('decrement method should not change value if it is not a number and return false', async ({
