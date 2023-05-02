@@ -37,7 +37,7 @@ jobs:
           sharedDb: # undefined by default
           delayTransientStatuses: # undefined by default
           optimizeDbBeforeStartup: # undefined by default
-          port: 8000
+          port: ${{ secrets.DYNAMODB_LOCAL_PORT }}
           cors: '*'
 
       - name: Setup Memcached
