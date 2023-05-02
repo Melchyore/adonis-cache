@@ -5,5 +5,9 @@
   "include": [
     "src/**/*.ts",
     "providers/**/*.ts"
+  ],
+  "exclude": [
+    "src/Bindings/Repl/index.ts",
+    "src/TagSet.ts"
   ]
 }

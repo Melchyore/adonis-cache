@@ -13,6 +13,7 @@ export default class CacheProvider {
       return new CacheManager(this.app, config)
     })
 
+    /* istanbul ignore next */
     this.app.container.singleton('Adonis/Addons/Cache/Stores', () => {
       return {
         BaseCacheStore: require('../src/Stores/BaseStore').default,
@@ -43,6 +44,7 @@ export default class CacheProvider {
      * Do not register repl binding when not running in "repl"
      * environment
      */
+    /* istanbul ignore next */
     if (this.app.environment !== 'repl') {
       return
     }
@@ -50,6 +52,7 @@ export default class CacheProvider {
     /**
      * Define REPL bindings
      */
+    /* istanbul ignore next */
     this.app.container.withBindings(['Adonis/Addons/Repl'], (Repl) => {
       const { defineReplBindings } = require('../src/Bindings/Repl')
 
@@ -69,6 +72,7 @@ export default class CacheProvider {
       return
     }
 
+    /* istanbul ignore next */
     this.app.container.withBindings(
       ['Adonis/Core/Server', 'Adonis/Addons/Cache'],
       (Server, Cache) => {
