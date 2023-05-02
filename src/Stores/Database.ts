@@ -121,15 +121,11 @@ export default class Database extends BaseStore implements CacheStoreContract {
   }
 
   public async increment(key: string, value: number): Promise<number | boolean> {
-    return await this.incrementOrDecrement(key, (currentValue: number) => {
-      return currentValue + value
-    })
+    return await this.incrementValue(key, value)
   }
 
   public async decrement(key: string, value: number): Promise<number | boolean> {
-    return this.incrementOrDecrement(key, (currentValue: number) => {
-      return currentValue - value
-    })
+    return await this.decrementValue(key, value)
   }
 
   public async putManyForever(list: Record<string, unknown>): Promise<Array<boolean>> {
@@ -181,57 +177,58 @@ export default class Database extends BaseStore implements CacheStoreContract {
     return this.getResultNumber(result)
   }
 
-  /* private async insertMulti (list: Record<string, unknown>, expiration?: string) {
-    const transaction = await this.connection.transaction()
+  private async incrementValue(_key: string, value: number): Promise<number | boolean> {
+    const key = this.buildKey(_key)
 
-    try {
-      await transaction
-        .insertQuery()
-        .table(this.table)
-        .multiInsert(
-          Object.entries(list)
-            .map(([key, value]) => {
-              return {
-                key,
-                value: this.serialize(value),
-                expiration
-              }
-            })
-        )
+    const incrementedValue = await this.connection.transaction(async (trx) => {
+      try {
+        const record = await trx.from(this.table).where('key', key).firstOrFail()
+        const previousValue = this.deserialize<number>(record.value)
 
-      await transaction.commit()
+        if (isNaN(previousValue)) {
+          return false
+        }
 
-      return Object.keys(list).map(_ => true)
-    } catch {
-      await transaction.rollback()
+        const newValue = previousValue + value
 
-      return Object.keys(list).map(_ => false)
-    }
-  } */
+        await trx.from(this.table).where('key', key).update({
+          value: newValue
+        })
 
-  private async incrementOrDecrement(
-    _key: string,
-    callback: (value: number) => number
-  ): Promise<number | boolean> {
-    try {
-      const key = this.buildKey(_key)
-      const record = await this.connection.from(this.table).where('key', key).firstOrFail()
-      const previousValue = this.deserialize<number>(record.value)
-
-      if (isNaN(previousValue)) {
+        return newValue
+      } catch {
         return false
       }
+    })
 
-      const newValue = callback(previousValue)
+    return incrementedValue
+  }
 
-      await this.connection.from(this.table).where('key', key).update({
-        value: newValue
-      })
+  private async decrementValue(_key: string, value: number): Promise<number | boolean> {
+    const key = this.buildKey(_key)
 
-      return newValue
-    } catch {
-      return false
-    }
+    const decrementedValue = await this.connection.transaction(async (trx) => {
+      try {
+        const record = await trx.from(this.table).where('key', key).firstOrFail()
+        const previousValue = this.deserialize<number>(record.value)
+
+        if (isNaN(previousValue)) {
+          return false
+        }
+
+        const newValue = previousValue - value
+
+        await trx.from(this.table).where('key', key).update({
+          value: newValue
+        })
+
+        return newValue
+      } catch {
+        return false
+      }
+    })
+
+    return decrementedValue
   }
 
   /**

@@ -7,7 +7,8 @@ import type {
   RepositoryContract,
   PutManyResult,
   TaggedCacheContract,
-  TaggableStoreContract
+  TaggableStoreContract,
+  CacheStoresList
 } from '@ioc:Adonis/Addons/Cache'
 
 import { Exception } from '@poppinss/utils'
@@ -28,7 +29,9 @@ import Utils from './Utils'
  * @class Repository
  * @implements {RepositoryContract<CacheStoreContract>}
  */
-export default class Repository implements RepositoryContract {
+export default class Repository<Name extends keyof CacheStoresList>
+  implements RepositoryContract<Name>
+{
   /*
    * Default expiration time `ttl` = 1 hour expressed in seconds.
    */
@@ -74,7 +77,7 @@ export default class Repository implements RepositoryContract {
   public async get<T = any>(key: string, fallback?: T | AsyncFunction<T>): Promise<T | null> {
     let value = await this._store.get<T>(await this.itemKey(key))
 
-    if (!value) {
+    if (this.isNull(value)) {
       this.emitter.emit(new CacheMissed(key))
 
       if (fallback) {
@@ -91,10 +94,10 @@ export default class Repository implements RepositoryContract {
     const records = await this._store.many<T>(keys)
 
     for (const [key, value] of Object.entries(records)) {
-      if (value) {
-        this.emitter.emit(new CacheHit(key, value))
-      } else {
+      if (this.isNull(value)) {
         this.emitter.emit(new CacheMissed(key))
+      } else {
+        this.emitter.emit(new CacheHit(key, value))
       }
     }
 
@@ -112,7 +115,7 @@ export default class Repository implements RepositoryContract {
   public async pull<T = any>(key: string): Promise<T | null> {
     const value = await this.get<T>(key)
 
-    if (value) {
+    if (!this.isNull(value)) {
       await this.forget(key)
     }
 
@@ -143,7 +146,9 @@ export default class Repository implements RepositoryContract {
       return result
     }
 
-    if (!(await this.get(key))) {
+    const cachedValue = await this.get(key)
+
+    if (this.isNull(cachedValue)) {
       return await this.put(key, value, ttl)
     }
 
@@ -154,11 +159,11 @@ export default class Repository implements RepositoryContract {
     return await this.put<T>(key, value, ttl)
   }
 
-  public async increment(key: string, value = 1): Promise<number | boolean> {
+  public async increment(key: string, value: number = 1): Promise<number | boolean> {
     return await this._store.increment(await this.itemKey(key), value)
   }
 
-  public async decrement(key: string, value = 1): Promise<number | boolean> {
+  public async decrement(key: string, value: number = 1): Promise<number | boolean> {
     return await this._store.decrement(await this.itemKey(key), value)
   }
 
@@ -235,7 +240,7 @@ export default class Repository implements RepositoryContract {
     if (this.checkClosure(closure)) {
       let value = await this.get(key)
 
-      if (value) {
+      if (!this.isNull(value)) {
         return value
       }
 
@@ -258,7 +263,7 @@ export default class Repository implements RepositoryContract {
     if (this.checkClosure(closure)) {
       let value = await this.get(key)
 
-      if (value !== null && value !== undefined) {
+      if (!this.isNull(value)) {
         return value
       }
 
@@ -296,30 +301,6 @@ export default class Repository implements RepositoryContract {
     return key
   }
 
-  /*private buildKey (key: string): string {
-    return `${this.prefix}${key}`
-  }*/
-
-  /**
-   * Build keys of an object by adding the prefix.
-   */
-  /*private async buildKeysFromObject (list: Record<string, unknown>): Promise<Record<string, unknown>> {
-    return Object.keys(list)
-      .reduce(async (_list: Promise<Record<string, unknown>>, key: string) => {
-        const accumulator = await _list
-        accumulator[await this.itemKey(key)] = list[key]
-
-        return accumulator
-      }, Promise.resolve({}))
-  }*/
-
-  /**
-   * Build keys of an array by adding the prefix.
-   */
-  /*private async buildKeysFromArray (keys: Array<string>): Promise<Array<string>> {
-    return Promise.all(keys.map((key) => this.itemKey(key)))
-  }*/
-
   private calculateTTL(ttl: number | null | undefined): number {
     if (ttl && ttl < 0) {
       throw new Exception('Expiration time (TTL) cannot be negative')
@@ -336,6 +317,10 @@ export default class Repository implements RepositoryContract {
     }
 
     return true
+  }
+
+  private isNull(value: any): boolean {
+    return value === null || value === undefined
   }
 
   private async resolveFallback<T = any>(fallback: T | AsyncFunction<T>): Promise<T> {

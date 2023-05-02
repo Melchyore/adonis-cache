@@ -30,9 +30,9 @@ import File from './Stores/File'
 
 export default class CacheManager extends Manager<
   ApplicationContract,
-  RepositoryContract,
-  RepositoryContract,
-  { [P in keyof CacheStoresList]: RepositoryContract }
+  CacheStoreContract,
+  RepositoryContract<keyof CacheStoresList>,
+  { [P in keyof CacheStoresList]: RepositoryContract<P> }
 > {
   /**
    * Cache all stores instances.
@@ -52,47 +52,33 @@ export default class CacheManager extends Manager<
     this.validateConfig()
   }
 
-  public createInMemory(_: string, config: InMemoryStoreConfig) {
-    return this.createRepository(config, new InMemory())
+  public createInMemory(_: string, __: InMemoryStoreConfig) {
+    return new InMemory()
   }
 
-  public createMemcached(_: string, config: MemcachedStoreConfig) {
-    return this.createRepository(
-      config,
-      new Memcached(this.app.container.use('Adonis/Addons/Adonis5-MemcachedClient'))
-    )
+  public createMemcached(_: string, __: MemcachedStoreConfig) {
+    return new Memcached(this.app.container.use('Adonis/Addons/Adonis5-MemcachedClient'))
   }
 
   public createRedis(_: string, config: RedisStoreConfig) {
-    const Container = this.app.container
+    const AdonisRedis = this.app.container.use('Adonis/Addons/Redis')
+    const redisConnection = this.app.container.use('Adonis/Core/Env').get('REDIS_CONNECTION')
 
-    return this.createRepository(
-      config,
-      new Redis(
-        Container.use('Adonis/Addons/Redis'),
-        config.connection ?? Container.use('Adonis/Core/Env').get('REDIS_CONNECTION')
-      )
-    )
+    return new Redis(AdonisRedis, config.connection ?? redisConnection)
   }
 
   public createDynamodb(_: string, config: DynamoDBStoreConfig) {
-    return this.createRepository(
-      config,
-      new DynamoDB(this.app.container.use('Adonis/Addons/DynamoDB').DynamoDB, config.table)
-    )
+    return new DynamoDB(this.app.container.use('Adonis/Addons/DynamoDB').DynamoDB, config.table)
   }
 
   public createDatabase(_: string, config: DatabaseStoreConfig) {
     const Container = this.app.container
 
-    return this.createRepository(
-      config,
-      new Database(
-        Container.use('Adonis/Lucid/Database').connection(
-          config.connection ?? Container.use('Adonis/Core/Env').get('DB_CONNECTION')
-        ),
-        config.table
-      )
+    return new Database(
+      Container.use('Adonis/Lucid/Database').connection(
+        config.connection ?? Container.use('Adonis/Core/Env').get('DB_CONNECTION')
+      ),
+      config.table
     )
   }
 
@@ -111,13 +97,10 @@ export default class CacheManager extends Manager<
       )
     }
 
-    return this.createRepository(
-      config,
-      new File(this.app.container.use('Adonis/Core/Drive').use(disk))
-    )
+    return new File(this.app.container.use('Adonis/Core/Drive').use(disk))
   }
 
-  public use(store?: keyof CacheStoresList): RepositoryContract {
+  public use(store?: keyof CacheStoresList): RepositoryContract<keyof CacheStoresList> {
     if (!this.isReady) {
       throw new Exception(
         'Missing configuration for cache. Visit https://github.com/Melchyore/adonis-cache for setup instructions',
@@ -149,11 +132,11 @@ export default class CacheManager extends Manager<
     return await this.use().set<T>(key, value, ttl)
   }
 
-  public async increment(key: string, value: number): Promise<number | boolean> {
+  public async increment(key: string, value: number = 1): Promise<number | boolean> {
     return await this.use().increment(key, value)
   }
 
-  public async decrement(key: string, value: number): Promise<number | boolean> {
+  public async decrement(key: string, value: number = 1): Promise<number | boolean> {
     return await this.use().decrement(key, value)
   }
 
@@ -220,14 +203,6 @@ export default class CacheManager extends Manager<
     return this.use().tags(names)
   }
 
-  public repository(config: CacheStoreConfig, store: CacheStoreContract): RepositoryContract {
-    if (!config) {
-      throw new Exception('You must provide the driver configuration as first argument')
-    }
-
-    return this.createRepository(config, store)
-  }
-
   protected getDefaultMappingName() {
     if (!this.config.store) {
       throw new Exception(
@@ -246,12 +221,17 @@ export default class CacheManager extends Manager<
     return this.getMappingConfig(mappingName)?.driver
   }
 
-  private createRepository(
-    config: CacheStoreConfig,
-    store: CacheStoreContract
-  ): RepositoryContract {
-    const repository = new Repository(store, this.getPrefix(config))
-    repository.setConfig(this.config, config)
+  /**
+   * Since we don't expose the drivers instances directly, we wrap them
+   * inside the smser instance.
+   */
+  protected wrapDriverResponse<Name extends keyof CacheStoresList>(
+    mappingName: Name,
+    driver: CacheStoreContract
+  ) {
+    const driverConfig = this.getMappingConfig(mappingName)
+    const repository = new Repository(driver, this.getPrefix(driverConfig))
+    repository.setConfig(this.config, driverConfig)
     repository.setEventDispatcher(this.emitter)
 
     return repository

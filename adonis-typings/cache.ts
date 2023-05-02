@@ -62,7 +62,7 @@ declare module '@ioc:Adonis/Addons/Cache' {
     createTable?(tableName?: string): Promise<TableDescription | null>
   }
 
-  export interface RepositoryContract {
+  export interface RepositoryContract<Name extends keyof CacheStoresList> {
     setConfig(config: CacheConfig, driverConfig: CacheStoreConfig): void
 
     setEventDispatcher(event: EmitterContract): void
@@ -132,7 +132,7 @@ declare module '@ioc:Adonis/Addons/Cache' {
      * @return {*}  {(Promise<number | boolean>)}
      * @memberof RepositoryContract
      */
-    increment(key: string, value: number): Promise<number | boolean>
+    increment(key: string, value?: number): Promise<number | boolean>
 
     /**
      * Decrement the value of an item in the cache.
@@ -142,7 +142,7 @@ declare module '@ioc:Adonis/Addons/Cache' {
      * @return {*}  {(Promise<number | boolean>)}
      * @memberof RepositoryContract
      */
-    decrement(key: string, value: number): Promise<number | boolean>
+    decrement(key: string, value?: number): Promise<number | boolean>
 
     /**
      * Determine if an item exists in the cache.
@@ -266,6 +266,7 @@ declare module '@ioc:Adonis/Addons/Cache' {
     /**
      * Remove all items from the cache.
      *
+     * @alias flush
      * @return {*}  {Promise<boolean>}
      * @memberof RepositoryContract
      */
@@ -281,7 +282,7 @@ declare module '@ioc:Adonis/Addons/Cache' {
     tags(names: string | Array<string>): TaggedCacheContract
   }
 
-  export interface TaggedCacheContract extends RepositoryContract {}
+  export interface TaggedCacheContract extends RepositoryContract<keyof CacheStoresList> {}
 
   export type AsyncFunction<T = any> = () => Promise<T>
 
@@ -400,14 +401,12 @@ declare module '@ioc:Adonis/Addons/Cache' {
   export interface CacheManagerContract
     extends ManagerContract<
       ApplicationContract,
-      RepositoryContract,
-      RepositoryContract,
-      { [P in keyof CacheStoresList]: RepositoryContract }
-    > {
-    repository(config: CacheStoreConfig, store: CacheStoreContract): RepositoryContract
-  }
+      CacheStoreContract,
+      RepositoryContract<keyof CacheStoresList>,
+      { [P in keyof CacheStoresList]: RepositoryContract<P> }
+    > {}
 
-  const Cache: CacheManagerContract & RepositoryContract
+  const Cache: CacheManagerContract
 
   export default Cache
 }

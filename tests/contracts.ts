@@ -4,7 +4,7 @@ import type { InferStoresFromConfig } from '../config'
 import cacheConfig from './config/cache'
 
 declare module '@ioc:Adonis/Addons/Cache' {
-  export interface RepositoryContract {
+  export interface RepositoryContract<Name extends keyof CacheStoresList> {
     readonly config: CacheConfig
 
     readonly driverConfig: CacheStoreConfig
