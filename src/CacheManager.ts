@@ -223,7 +223,7 @@ export default class CacheManager extends Manager<
 
   /**
    * Since we don't expose the drivers instances directly, we wrap them
-   * inside the smser instance.
+   * inside the repository instance.
    */
   protected wrapDriverResponse<Name extends keyof CacheStoresList>(
     mappingName: Name,
