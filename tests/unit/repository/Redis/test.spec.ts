@@ -2,9 +2,9 @@ import type { EmitterContract } from '@ioc:Adonis/Core/Event'
 
 import { test } from '@japa/runner'
 
-import { getCacheConfig, fs, setup, createRepository } from '../../../bin/test/config'
-import { sleep } from '../../../test-helpers/utils'
-import Redis from '../../../src/Stores/Redis'
+import { getCacheConfig, fs, setup, createRepository } from '../../../../bin/test/config'
+import { sleep } from '../../../../test-helpers/utils'
+import Redis from '../../../../src/Stores/Redis'
 
 const cacheConfig = getCacheConfig('redis')
 

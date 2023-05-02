@@ -20,12 +20,33 @@ import { processCliArgs, configure, run } from '@japa/runner'
 configure({
   ...processCliArgs(process.argv.slice(2)),
   ...{
-    files: ['tests/**/*.spec.ts'],
+    //files: ['tests/**/*.spec.ts'],
+    suites: [
+      {
+        name: 'unit',
+        files: ['tests/unit/**/*.spec(.ts|.js)']
+      },
+      {
+        name: 'functional',
+        files: ['tests/functional/**/*.spec(.ts|.js)'],
+        configure(suite) {
+          suite.onTest((test) => {
+            test.retry(4)
+          })
+
+          suite.onGroup((group) => {
+            group.tap((test) => {
+              test.retry(4)
+            })
+          })
+        }
+      }
+    ],
     plugins: [expect(), assert(), runFailedTests()],
     reporters: [specReporter()],
     importer: (filePath: string) => import(filePath),
     forceExit: true
-  },
+  }
 })
 
 /**

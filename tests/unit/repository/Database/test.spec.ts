@@ -2,29 +2,40 @@ import type { EmitterContract } from '@ioc:Adonis/Core/Event'
 
 import { test } from '@japa/runner'
 
-import { getCacheConfig, createRepository, fs, setup } from '../../../bin/test/config'
-import { sleep } from '../../../test-helpers/utils'
-import InMemory from '../../../src/Stores/InMemory'
+import { getCacheConfig, createRepository, fs, setup } from '../../../../bin/test/config'
+import { sleep } from '../../../../test-helpers/utils'
+import Database from '../../../../src/Stores/Database'
 
-const cacheConfig = getCacheConfig('in_memory')
+const cacheConfig = getCacheConfig('database')
+const table = cacheConfig.stores.database.table
 
 let Event: EmitterContract
 
 async function getRepository() {
   const app = await setup('test', cacheConfig)
+  const connection = app.container
+    .use('Adonis/Lucid/Database')
+    .connection(cacheConfig.stores.database.connection)
   const { Event: event, Repository } = await createRepository(
     app,
     cacheConfig,
     { driver: cacheConfig.store },
-    new InMemory()
+    new Database(connection, table)
   )
 
   Event = event
 
+  await connection.schema.dropTableIfExists(table)
+  await connection.schema.createTable(table, (_table) => {
+    _table.string('key', 255).notNullable().primary()
+    _table.text('value', 'longtext').notNullable()
+    _table.timestamp('expiration', { useTz: true }).nullable()
+  })
+
   return Repository
 }
 
-test.group('Repository - InMemory', (group) => {
+test.group('Repository - Database', (group) => {
   group.teardown(async () => {
     Event.restore()
 
@@ -80,7 +91,7 @@ test.group('Repository - InMemory', (group) => {
 
     const key = 'test'
 
-    expect(async () => await repository.put(key, 'John Doe', -200)).rejects.toThrowError(
+    expect(async () => await repository.put(key, 'John Doe', -1000)).rejects.toThrowError(
       'Expiration time (TTL) cannot be negative'
     )
   })
@@ -113,12 +124,12 @@ test.group('Repository - InMemory', (group) => {
 
     await repository.putMany(list, 60 * 60 * 24)
 
-    await sleep(1500)
+    await sleep(3000)
 
     for (const [key, value] of Object.entries(list)) {
       expect(await repository.get(key)).toStrictEqual(value)
     }
-  })
+  }).disableTimeout()
 
   test('putManyForever method should cache all the values without ttl', async ({ expect }) => {
     const repository = await getRepository()
@@ -130,12 +141,12 @@ test.group('Repository - InMemory', (group) => {
 
     await repository.putManyForever(list)
 
-    await sleep(1500)
+    await sleep(3000)
 
     for (const [key, value] of Object.entries(list)) {
       expect(await repository.get(key)).toStrictEqual(value)
     }
-  })
+  }).disableTimeout()
 
   test('get method should find cached value by key', async ({ expect }) => {
     const repository = await getRepository()
@@ -330,10 +341,10 @@ test.group('Repository - InMemory', (group) => {
 
     await repository.forever(key, 'John Doe')
 
-    await sleep(1500)
+    await sleep(3000)
 
     expect(await repository.has(key)).toBeTruthy()
-  })
+  }).disableTimeout()
 
   test('pull method should retrieve cached item and delete it from cache', async ({ expect }) => {
     const repository = await getRepository()

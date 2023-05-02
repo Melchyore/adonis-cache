@@ -2,8 +2,8 @@ import type { CacheStoreConfig } from '@ioc:Adonis/Addons/Cache'
 
 import { test } from '@japa/runner'
 
-import { getCacheConfig, fs, setup, getDummyStore } from '../bin/test/config'
-import CacheManager from '../src/CacheManager'
+import { getCacheConfig, fs, setup, getDummyStore } from '../../bin/test/config'
+import CacheManager from '../../src/CacheManager'
 
 const cacheConfig = getCacheConfig()
 

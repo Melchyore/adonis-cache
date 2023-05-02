@@ -2,32 +2,30 @@ import type { EmitterContract } from '@ioc:Adonis/Core/Event'
 
 import { test } from '@japa/runner'
 
-import { getCacheConfig, createRepository, fs, setup } from '../../../bin/test/config'
-import { sleep } from '../../../test-helpers/utils'
-import DynamoDB from '../../../src/Stores/DynamoDB'
+import { getCacheConfig, fs, createRepository, setup } from '../../../../bin/test/config'
+import { sleep } from '../../../../test-helpers/utils'
+import Memcached from '../../../../src/Stores/Memcached'
 
-const cacheConfig = getCacheConfig('dynamodb')
+const cacheConfig = getCacheConfig('memcached')
 
 let Event: EmitterContract
 
 async function getRepository() {
   const app = await setup('test', cacheConfig)
-  const DynamoDBClient = app.container.use('Adonis/Addons/DynamoDB').DynamoDB
+  const MemcachedManager = app.container.use('Adonis/Addons/Adonis5-MemcachedClient')
   const { Event: event, Repository } = await createRepository(
     app,
     cacheConfig,
     { driver: cacheConfig.store },
-    new DynamoDB(DynamoDBClient, cacheConfig.stores.dynamodb.table)
+    new Memcached(MemcachedManager)
   )
-
-  await Repository.store.createTable!()
 
   Event = event
 
   return Repository
 }
 
-test.group('Repository - DynamoDB', (group) => {
+test.group('Repository - Memcached', (group) => {
   group.teardown(async () => {
     Event.restore()
 
@@ -44,8 +42,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.get(key)).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('set method', async ({ expect }) => {
     const repository = await getRepository()
@@ -57,8 +55,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.get(key)).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('put method', async ({ expect }) => {
     const repository = await getRepository()
@@ -70,8 +68,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.get(key)).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('put method with custom ttl', async ({ expect }) => {
     const repository = await getRepository()
@@ -83,7 +81,7 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.get(key)).toStrictEqual(null)
 
-    await repository.forget(key)
+    await repository.flush()
   }).disableTimeout()
 
   test('put method should throw exception if ttl is nagative', async ({ expect }) => {
@@ -91,12 +89,12 @@ test.group('Repository - DynamoDB', (group) => {
 
     const key = 'test'
 
-    expect(async () => await repository.put(key, 'John Doe', -200)).rejects.toThrowError(
+    expect(async () => await repository.put(key, 'John Doe', -1000)).rejects.toThrowError(
       'Expiration time (TTL) cannot be negative'
     )
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('putMany method should cache all the values', async ({ expect }) => {
     const repository = await getRepository()
@@ -113,10 +111,10 @@ test.group('Repository - DynamoDB', (group) => {
     for (const [key, value] of Object.entries(list)) {
       expect(await repository.has(key)).toBeTruthy()
       expect(await repository.get(key)).toStrictEqual(value)
-
-      await repository.forget(key)
     }
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('putMany method should cache all the values with custom ttl', async ({ expect }) => {
     const repository = await getRepository()
@@ -126,17 +124,16 @@ test.group('Repository - DynamoDB', (group) => {
       foo: 'Anna'
     }
 
-    await repository.putMany(list, 4000)
+    await repository.putMany(list, 60 * 60 * 24)
 
-    await sleep(3000)
+    await sleep(1500)
 
-    expect(await repository.get('test')).toStrictEqual(list.test)
-    expect(await repository.get('foo')).toStrictEqual(list.foo)
+    for (const [key, value] of Object.entries(list)) {
+      expect(await repository.get(key)).toStrictEqual(value)
+    }
 
-    Object.keys(list).forEach(async (key) => {
-      await repository.forget(key)
-    })
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('putManyForever method should cache all the values without ttl', async ({ expect }) => {
     const repository = await getRepository()
@@ -150,12 +147,11 @@ test.group('Repository - DynamoDB', (group) => {
 
     await sleep(3000)
 
-    expect(await repository.get('test')).toStrictEqual(list.test)
-    expect(await repository.get('foo')).toStrictEqual(list.foo)
+    for (const [key, value] of Object.entries(list)) {
+      expect(await repository.get(key)).toStrictEqual(value)
+    }
 
-    Object.keys(list).forEach(async (key) => {
-      await repository.forget(key)
-    })
+    await repository.flush()
   }).disableTimeout()
 
   test('get method should find cached value by key', async ({ expect }) => {
@@ -168,12 +164,10 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.get(key)).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
-  test('get method should delete cached value if it is called and has expired', async ({
-    expect
-  }) => {
+  test('get method should not find cached value if it has expired', async ({ expect }) => {
     const repository = await getRepository()
 
     const key = 'test'
@@ -187,7 +181,7 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.has(key)).toBeFalsy()
     expect(value).toBeNull()
 
-    await repository.forget(key)
+    await repository.flush()
   }).disableTimeout()
 
   test('get method should return value if key not found and fallback defined as a raw value', async ({
@@ -198,11 +192,11 @@ test.group('Repository - DynamoDB', (group) => {
     const key = 'test'
     const value = 'John Doe'
 
-    expect(await repository.get(key, value)).toStrictEqual(value)
+    expect(await repository.get('test', value)).toStrictEqual(value)
     expect(await repository.has(key)).toBeFalsy()
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('get method should return value if key not found and fallback defined as a closure', async ({
     expect
@@ -218,8 +212,7 @@ test.group('Repository - DynamoDB', (group) => {
       }
     ]
 
-    const key = 'test'
-    const value = await repository.get(key, async () => {
+    const value = await repository.get('test', async () => {
       await sleep(500)
 
       return data
@@ -227,8 +220,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(value).toStrictEqual(data)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('get method should not cache value if key not found and fallback defined', async ({
     expect
@@ -241,8 +234,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.has(key)).toBeFalsy()
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('get method should return cached value using forever method', async ({ expect }) => {
     const repository = await getRepository()
@@ -254,8 +247,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.get(key)).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('has method should return true if key is found', async ({ expect }) => {
     const repository = await getRepository()
@@ -266,24 +259,20 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.has(key)).toBeTruthy()
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('has method should return false if key is not found', async ({ expect }) => {
     const repository = await getRepository()
 
-    const key = 'test'
-
-    expect(await repository.has(key)).toBeFalsy()
-
-    await repository.forget(key)
-  }).disableTimeout()
+    expect(await repository.has('test')).toBeFalsy()
+  })
 
   test('missing method should return true if key is not found', async ({ expect }) => {
     const repository = await getRepository()
 
     expect(await repository.missing('test')).toBeTruthy()
-  }).disableTimeout()
+  })
 
   test('missing method should return false if key is found', async ({ expect }) => {
     const repository = await getRepository()
@@ -294,8 +283,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.missing(key)).toBeFalsy()
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('increment method should increment the value of an existing record and return the new value', async ({
     expect
@@ -310,8 +299,8 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.increment(key, 2)).toStrictEqual(7)
     expect(await repository.get(key)).toStrictEqual(7)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('increment method should not change value if it is not a number and return false', async ({
     expect
@@ -326,14 +315,16 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.increment(key, 2)).toBeFalsy()
     expect(await repository.get(key)).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('increment method should return false if key not found', async ({ expect }) => {
     const repository = await getRepository()
 
     expect(await repository.increment('test', 1)).toBeFalsy()
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('decrement method should decrement the value of an existing record and return the new value', async ({
     expect
@@ -348,8 +339,8 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.decrement(key, 2)).toStrictEqual(3)
     expect(await repository.get(key)).toStrictEqual(3)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('decrement method should not change value if it is not a number and return false', async ({
     expect
@@ -364,14 +355,16 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.decrement(key, 2)).toBeFalsy()
     expect(await repository.get(key)).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('decrement method should return false if key not found', async ({ expect }) => {
     const repository = await getRepository()
 
     expect(await repository.decrement('test', 1)).toBeFalsy()
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('forever method should cache a value without expiration', async ({ expect }) => {
     const repository = await getRepository()
@@ -384,7 +377,7 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.has(key)).toBeTruthy()
 
-    await repository.forget(key)
+    await repository.flush()
   }).disableTimeout()
 
   test('pull method should retrieve cached item and delete it from cache', async ({ expect }) => {
@@ -399,7 +392,7 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(await repository.has(key)).toBeFalsy()
     expect(pulled).toStrictEqual(value)
-  }).disableTimeout()
+  })
 
   test('forget method should delete cached value using put method', async ({ expect }) => {
     const repository = await getRepository()
@@ -413,7 +406,9 @@ test.group('Repository - DynamoDB', (group) => {
     await repository.forget(key)
 
     expect(await repository.has(key)).toBeFalsy()
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('forget method should delete cached value using put method with custom ttl', async ({
     expect
@@ -429,7 +424,9 @@ test.group('Repository - DynamoDB', (group) => {
     await repository.forget(key)
 
     expect(await repository.has(key)).toBeFalsy()
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('forget method should delete cached value using forever method', async ({ expect }) => {
     const repository = await getRepository()
@@ -443,7 +440,9 @@ test.group('Repository - DynamoDB', (group) => {
     await repository.forget(key)
 
     expect(await repository.has(key)).toBeFalsy()
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('forgetMultiple method should delete all cached value by keys', async ({ expect }) => {
     const repository = await getRepository()
@@ -466,7 +465,7 @@ test.group('Repository - DynamoDB', (group) => {
       [key1]: null,
       [key2]: null
     })
-  }).disableTimeout()
+  })
 
   test('remember method should return cached value using put method', async ({ expect }) => {
     const repository = await getRepository()
@@ -481,22 +480,8 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(cachedValue).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
-
-  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
-    const repository = await getRepository()
-
-    const key = 'test'
-
-    await repository.rememberForever(key, async () => 0)
-
-    const cachedValue = await repository.rememberForever(key, async () => 1)
-
-    expect(cachedValue).toStrictEqual(0)
-
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('remember method should cache fallback value and return it if key not found', async ({
     expect
@@ -516,8 +501,8 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.get(key)).toStrictEqual(fallbackValue)
     expect(cachedValue).toStrictEqual(fallbackValue)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('remember method should throw exception if closure is not a function', async ({
     expect
@@ -528,7 +513,9 @@ test.group('Repository - DynamoDB', (group) => {
       // @ts-ignore
       async () => await repository.remember('test', null, null)
     ).rejects.toThrowError('Closure must be a function')
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('remember method should throw exception if ttl is negative', async ({ expect }) => {
     const repository = await getRepository()
@@ -536,7 +523,9 @@ test.group('Repository - DynamoDB', (group) => {
     expect(
       async () => await repository.remember('test', -200, async () => 'John Doe')
     ).rejects.toThrowError('Expiration time (TTL) cannot be negative')
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('sear method should cache an item forever', async ({ expect }) => {
     const repository = await getRepository()
@@ -549,8 +538,8 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.has(key)).toBeTruthy()
     expect(cachedValue).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('rememberForever method should return cached value using put method', async ({ expect }) => {
     const repository = await getRepository()
@@ -565,8 +554,21 @@ test.group('Repository - DynamoDB', (group) => {
 
     expect(cachedValue).toStrictEqual(value)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
+
+  test('rememberForever method should return 0 as a valid value', async ({ expect }) => {
+    const repository = await getRepository()
+
+    const key = 'test'
+
+    await repository.rememberForever(key, async () => 0)
+    const cachedValue = await repository.rememberForever(key, async () => 1)
+
+    expect(cachedValue).toStrictEqual(0)
+
+    await repository.flush()
+  })
 
   test('rememberForever method should cache fallback value and return it if key not found', async ({
     expect
@@ -586,8 +588,8 @@ test.group('Repository - DynamoDB', (group) => {
     expect(await repository.get(key)).toStrictEqual(fallbackValue)
     expect(cachedValue).toStrictEqual(fallbackValue)
 
-    await repository.forget(key)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
   test('rememberForever method should throw exception if closure is not a function', async ({
     expect
@@ -598,7 +600,9 @@ test.group('Repository - DynamoDB', (group) => {
       // @ts-ignore
       async () => await repository.rememberForever('test', null)
     ).rejects.toThrowError('Closure must be a function')
-  }).disableTimeout()
+
+    await repository.flush()
+  })
 
   test('many method should return an object of key-value if keys are found', async ({ expect }) => {
     const repository = await getRepository()
@@ -618,21 +622,55 @@ test.group('Repository - DynamoDB', (group) => {
       [key2]: value2
     })
 
-    await repository.forget(key1)
-    await repository.forget(key2)
-  }).disableTimeout()
+    await repository.flush()
+  })
 
-  test('flush method should throw an exception', async ({ expect }) => {
+  test('flush method should delete all records from the current cache store', async ({
+    expect
+  }) => {
     const repository = await getRepository()
+    const records = {
+      test: 'John Doe',
+      foo: 'Anna',
+      bar: 'Lorem'
+    }
 
-    expect(async () => await repository.flush()).rejects.toThrowError(
-      'DynamoDb does not support flushing an entire table. Please delete then create the cache table'
-    )
-  }).disableTimeout()
+    await repository.putMany(records)
 
-  test('tags method should throw an exception', async ({ expect }) => {
+    expect(await repository.many(Object.keys(records))).toStrictEqual(records)
+
+    await repository.flush()
+
+    Object.keys(records).forEach(async (key) => {
+      expect(await repository.has(key)).toBeFalsy()
+    })
+
+    await repository.flush()
+  })
+
+  test('tags should cache value using put method', async ({ expect }) => {
     const repository = await getRepository()
+    const tags = ['tag1', 'tag2']
+    const key = 'test'
 
-    expect(() => repository.tags('test')).toThrowError('This cache store does not support tagging')
+    await repository.tags(tags).put(key, 'John Doe')
+
+    expect(await repository.tags(tags).has(key)).toBeTruthy()
+
+    await repository.flush()
+  })
+
+  test('tags should cache value using forever method', async ({ expect }) => {
+    const repository = await getRepository()
+    const tags = ['tag1', 'tag2']
+    const key = 'test'
+
+    await repository.tags(tags).forever(key, 'John Doe')
+
+    await sleep(2000)
+
+    expect(await repository.tags(tags).has(key)).toBeTruthy()
+
+    await repository.flush()
   }).disableTimeout()
 })

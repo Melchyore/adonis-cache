@@ -2,9 +2,9 @@ import type { EmitterContract } from '@ioc:Adonis/Core/Event'
 
 import { test } from '@japa/runner'
 
-import { getCacheConfig, createRepository, fs, setup } from '../../../bin/test/config'
-import { sleep } from '../../../test-helpers/utils'
-import File from '../../../src/Stores/File'
+import { getCacheConfig, createRepository, fs, setup } from '../../../../bin/test/config'
+import { sleep } from '../../../../test-helpers/utils'
+import File from '../../../../src/Stores/File'
 
 const cacheConfig = getCacheConfig('file')
 

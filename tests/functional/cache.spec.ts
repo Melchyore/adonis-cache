@@ -2,7 +2,7 @@ import type { CacheStoreConfig } from '@ioc:Adonis/Addons/Cache'
 
 import { test } from '@japa/runner'
 
-import { sleep } from '../test-helpers/utils'
+import { sleep } from '../../test-helpers/utils'
 import {
   getCacheConfig,
   setup,
@@ -10,14 +10,14 @@ import {
   getDummyStore,
   getTaggableDummyStore,
   getCache
-} from '../bin/test/config'
+} from '../../bin/test/config'
 
-import CacheManager from '../src/CacheManager'
-import BaseStore from '../src/Stores/BaseStore'
-import TaggableStore from '../src/Stores/TaggableStore'
-import InMemory from '../src/Stores/InMemory'
-import Memcached from '../src/Stores/Memcached'
-import Redis from '../src/Stores/Redis'
+import CacheManager from '../../src/CacheManager'
+import BaseStore from '../../src/Stores/BaseStore'
+import TaggableStore from '../../src/Stores/TaggableStore'
+import InMemory from '../../src/Stores/InMemory'
+import Memcached from '../../src/Stores/Memcached'
+import Redis from '../../src/Stores/Redis'
 
 const cacheConfig = getCacheConfig()
 
