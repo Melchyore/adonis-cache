@@ -51,7 +51,7 @@
 
 # Adonis Cache
 
-[![gh-workflow-image]][gh-workflow-url] [![npm-image]][npm-url] [![license-image]][license-url] [![typescript-image]][typescript-url]
+[![gh-workflow-image]][gh-workflow-url] [![coverage-image]][coverage-url] [![npm-image]][npm-url] [![license-image]][license-url] [![typescript-image]][typescript-url]
 
 Cache package for AdonisJS V5
 
