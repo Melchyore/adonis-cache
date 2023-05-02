@@ -406,7 +406,7 @@ declare module '@ioc:Adonis/Addons/Cache' {
       { [P in keyof CacheStoresList]: RepositoryContract<P> }
     > {}
 
-  const Cache: CacheManagerContract
+  const Cache: CacheManagerContract & RepositoryContract<keyof CacheStoresList>
 
   export default Cache
 }
