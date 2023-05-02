@@ -31,12 +31,12 @@ configure({
         files: ['tests/functional/**/*.spec(.ts|.js)'],
         configure(suite) {
           suite.onTest((test) => {
-            test.retry(4)
+            test.retry(5)
           })
 
           suite.onGroup((group) => {
             group.tap((test) => {
-              test.retry(4)
+              test.retry(5)
             })
           })
         }
